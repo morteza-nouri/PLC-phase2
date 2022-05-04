@@ -13,6 +13,12 @@ class X {
         int y
     }
 
+    public void test(){
+        int y
+
+        int y
+    }
+
     public void test2(){
         int y
 

@@ -138,23 +138,19 @@ public class NameAnalyser extends Visitor<Void> {
     }
 
     public Void visit(ClassDeclaration classDec) {
-
         classDec.getClassName().accept(this);
         if(classDec.getParentClassName() != null)
             classDec.getParentClassName().accept(this);
         if(classDec.getConstructor() != null) {
             classDec.getConstructor().accept(this);
-            SymbolTable.pop();
         }
         for(MethodDeclaration md : classDec.getMethods()) {
             md.accept(this);
-            SymbolTable.pop();
         }
 
         for(FieldDeclaration fd : classDec.getFields()) {
             fd.accept(this);
         }
-
         return null;
     }
 
@@ -178,10 +174,24 @@ public class NameAnalyser extends Visitor<Void> {
             }
 
         isInMethod = false;
+        SymbolTable.pop();
         return null;
     }
 
     public Void visit(MethodDeclaration methodDeclaration) {
+        String name = methodDeclaration.getMethodName().getName();
+        MethodSymbolTableItem methodSymbolTableItem = new MethodSymbolTableItem(methodDeclaration);
+        try {
+            SymbolTable.top.getItem(methodSymbolTableItem.getKey());
+            MethodRedefinition exception = new MethodRedefinition(methodDeclaration.getLine(), name);
+            methodDeclaration.addError(exception);
+        } catch (ItemNotFoundException exception2) {
+            try {
+                SymbolTable.top.put(methodSymbolTableItem);
+            } catch (ItemAlreadyExistsException exception3) { //unreachable
+            }
+        }
+
         SymbolTable.push(new SymbolTable());
         isInMethod = true;
         methodDeclaration.getMethodName().accept(this);
@@ -201,6 +211,8 @@ public class NameAnalyser extends Visitor<Void> {
             body.accept(this);
         }
         isInMethod = false;
+
+        SymbolTable.pop();
 
         return null;
     }
