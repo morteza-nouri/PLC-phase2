@@ -154,6 +154,23 @@ public class NameAnalyser extends Visitor<Void> {
         return null;
     }
 
+    public Void visit(FieldDeclaration fieldDeclaration) {
+        fieldDeclaration.getVarDeclaration().accept(this);
+        String name = fieldDeclaration.getVarDeclaration().getVarName().getName();
+        FieldSymbolTableItem methodSymbolTableItem = new FieldSymbolTableItem(fieldDeclaration);
+        try {
+            SymbolTable.top.getItem(methodSymbolTableItem.getKey());
+            FieldRedefinition exception = new FieldRedefinition(fieldDeclaration.getLine(), name);
+            fieldDeclaration.addError(exception);
+        } catch (ItemNotFoundException exception2) {
+            try {
+                SymbolTable.top.put(methodSymbolTableItem);
+            } catch (ItemAlreadyExistsException exception3) { //unreachable
+            }
+        }
+        return null;
+    }
+
     public Void visit(ConstructorDeclaration constructorDeclaration) {
         SymbolTable.push(new SymbolTable());
         isInMethod = true;
@@ -179,6 +196,7 @@ public class NameAnalyser extends Visitor<Void> {
     }
 
     public Void visit(MethodDeclaration methodDeclaration) {
+        isInMethod = true;
         String name = methodDeclaration.getMethodName().getName();
         MethodSymbolTableItem methodSymbolTableItem = new MethodSymbolTableItem(methodDeclaration);
         try {
@@ -193,7 +211,7 @@ public class NameAnalyser extends Visitor<Void> {
         }
 
         SymbolTable.push(new SymbolTable());
-        isInMethod = true;
+
         methodDeclaration.getMethodName().accept(this);
         methodName = methodDeclaration.getMethodName().getName();
 
@@ -218,16 +236,18 @@ public class NameAnalyser extends Visitor<Void> {
     }
 
     public Void visit(VariableDeclaration varDecl) {
-        String name = varDecl.getVarName().getName();
-        LocalVariableSymbolTableItem variableSymbolTableItem = new LocalVariableSymbolTableItem(varDecl);
-        try {
-            SymbolTable.top.getItem(variableSymbolTableItem.getKey());
-            LocalVarRedefinition exception = new LocalVarRedefinition(varDecl.getLine(), name);
-            varDecl.addError(exception);
-        } catch (ItemNotFoundException exception2) {
+        if (isInMethod) {
+            String name = varDecl.getVarName().getName();
+            LocalVariableSymbolTableItem variableSymbolTableItem = new LocalVariableSymbolTableItem(varDecl);
             try {
-                SymbolTable.top.put(variableSymbolTableItem);
-            } catch (ItemAlreadyExistsException exception3) { //unreachable
+                SymbolTable.top.getItem(variableSymbolTableItem.getKey());
+                LocalVarRedefinition exception = new LocalVarRedefinition(varDecl.getLine(), name);
+                varDecl.addError(exception);
+            } catch (ItemNotFoundException exception2) {
+                try {
+                    SymbolTable.top.put(variableSymbolTableItem);
+                } catch (ItemAlreadyExistsException exception3) { //unreachable
+                }
             }
         }
         return null;

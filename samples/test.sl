@@ -3,6 +3,7 @@ int x;
 
 class X {
     public int x;
+    public int x;
     public initialize (int id) {
         int y;
     }
