@@ -142,10 +142,13 @@ public class NameAnalyser extends Visitor<Void> {
         classDec.getClassName().accept(this);
         if(classDec.getParentClassName() != null)
             classDec.getParentClassName().accept(this);
-        if(classDec.getConstructor() != null)
+        if(classDec.getConstructor() != null) {
             classDec.getConstructor().accept(this);
+            SymbolTable.pop();
+        }
         for(MethodDeclaration md : classDec.getMethods()) {
             md.accept(this);
+            SymbolTable.pop();
         }
 
         for(FieldDeclaration fd : classDec.getFields()) {
@@ -156,7 +159,7 @@ public class NameAnalyser extends Visitor<Void> {
     }
 
     public Void visit(ConstructorDeclaration constructorDeclaration) {
-        //todo: done
+        SymbolTable.push(new SymbolTable());
         isInMethod = true;
         methodName = "initialize";
         if (constructorDeclaration.getArgs() != null)
@@ -179,6 +182,7 @@ public class NameAnalyser extends Visitor<Void> {
     }
 
     public Void visit(MethodDeclaration methodDeclaration) {
+        SymbolTable.push(new SymbolTable());
         isInMethod = true;
         methodDeclaration.getMethodName().accept(this);
         methodName = methodDeclaration.getMethodName().getName();
@@ -197,11 +201,23 @@ public class NameAnalyser extends Visitor<Void> {
             body.accept(this);
         }
         isInMethod = false;
+
         return null;
     }
 
     public Void visit(VariableDeclaration varDecl) {
-        varDecl.getVarName().accept(this);
+        String name = varDecl.getVarName().getName();
+        LocalVariableSymbolTableItem variableSymbolTableItem = new LocalVariableSymbolTableItem(varDecl);
+        try {
+            SymbolTable.top.getItem(variableSymbolTableItem.getKey());
+            LocalVarRedefinition exception = new LocalVarRedefinition(varDecl.getLine(), name);
+            varDecl.addError(exception);
+        } catch (ItemNotFoundException exception2) {
+            try {
+                SymbolTable.top.put(variableSymbolTableItem);
+            } catch (ItemAlreadyExistsException exception3) { //unreachable
+            }
+        }
         return null;
     }
 

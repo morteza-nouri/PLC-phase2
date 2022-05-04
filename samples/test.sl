@@ -18,4 +18,16 @@ class X {
 
         int y
     }
+
+    public int test3(){
+        int y
+        int z
+        int z
+    }
+}
+
+class Y {
+    public initialize(int x){
+        int x
+    }
 }
