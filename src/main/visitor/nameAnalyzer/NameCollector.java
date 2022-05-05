@@ -123,6 +123,7 @@ public class NameCollector extends Visitor<Void> {
             return null;
         }
         LocalVariableSymbolTableItem localVarSTI = new LocalVariableSymbolTableItem(varDec);
+
         try {
             SymbolTable.top.put(localVarSTI);
         } catch (ItemAlreadyExistsException e) {
@@ -131,12 +132,11 @@ public class NameCollector extends Visitor<Void> {
         }
 
         for (VariableDeclaration gVar : globalVars) {
-            String gVarName = gVar.getVarName().getName();
-            try {
-                SymbolTable.top.getItem(LocalVariableSymbolTableItem.START_KEY + gVarName);
-                LocalVarConflictWithGlobalVar exception = new LocalVarConflictWithGlobalVar(gVar.getLine(), gVarName);
+            if (gVar.getVarName().getName().equals(varDec.getVarName().getName()) ){
+                LocalVarConflictWithGlobalVar exception = new LocalVarConflictWithGlobalVar(varDec.getLine(), varDec.getVarName().getName());
                 varDec.addError(exception);
-            } catch (ItemNotFoundException e) {}
+                break;
+            }
         }
 
         return null;

@@ -101,13 +101,6 @@ public class NameChecker extends Visitor<Void> {
             methodDec.addError(exception);
         } catch (ItemNotFoundException e) {}
 
-        // handling method conflict with field name in parent
-        try {
-            parentST.getItem(FieldSymbolTableItem.START_KEY + methodName);
-            MethodNameConflictWithField exception = new MethodNameConflictWithField(methodDec.getLine(), methodName);
-            methodDec.addError(exception);
-        } catch (ItemNotFoundException e) {}
-
         return null;
     }
 
@@ -127,5 +120,6 @@ public class NameChecker extends Visitor<Void> {
 
         return null;
     }
+
 
 }
