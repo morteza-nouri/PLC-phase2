@@ -37,8 +37,8 @@ public class Graph<N> {
 
     private boolean _isSecondNodeAncestorOf(N first, N second, Set<N> visitedNodes) {
         try {
-            if(first.equals(second))
-                return true;
+//            if(first.equals(second))
+//                return true;
             Collection<N> parents = getParentsOfNode(first);
             for(N node : parents) {
                 if (node.equals(second)) {

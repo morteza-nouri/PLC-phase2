@@ -86,6 +86,16 @@ public class NameAnalyser extends Visitor<Void> {
         }
     }
 
+    private void checkCycle(ArrayList<ClassDeclaration> classes) {
+        for (ClassDeclaration classDec : classes) {
+            String className = classDec.getClassName().getName();
+            if (structHierarchy.isSecondNodeAncestorOf(className, className)) {
+                ClassInCyclicInheritance exception = new ClassInCyclicInheritance(classDec.getLine(), className);
+                classDec.addError(exception);
+            }
+        }
+    }
+
     @Override
     public Void visit(Program program) {
         SymbolTable root = new SymbolTable();
@@ -100,6 +110,20 @@ public class NameAnalyser extends Visitor<Void> {
             catch (Exception e){//unreachable
             }
         }
+
+        for (ClassDeclaration classDec : program.getClasses()) {
+            try {
+                if (classDec.getParentClassName() != null) {
+                    String parent = classDec.getParentClassName().getName();
+                    String child = classDec.getClassName().getName();
+                    structHierarchy.addNodeAsParentOf(parent, child);
+                }
+            }
+            catch (Exception e) { // Unreachable
+
+            }
+        }
+        checkCycle(program.getClasses());
 
         for (VariableDeclaration varDecl : program.getGlobalVariables()) {
             createGlobalVarSymbolTable(varDecl);
@@ -124,6 +148,7 @@ public class NameAnalyser extends Visitor<Void> {
             } catch (ItemNotFoundException e) { //Unreachable
             }
         }
+
 
         for (VariableDeclaration varDecl : program.getGlobalVariables()) {
             SymbolTable.push(new SymbolTable());
