@@ -19,13 +19,16 @@ import java.util.ArrayList;
 public class NameCollector extends Visitor<Void> {
 
     private int newId = 1;
+    private boolean isGlobal = false;
 
     @Override
     public Void visit(Program program) {
         SymbolTable.push(new SymbolTable());
         SymbolTable.root = SymbolTable.top;
         for (VariableDeclaration varDec : program.getGlobalVariables()) {
+            isGlobal = true;
             varDec.accept(this);
+            isGlobal = false;
         }
         for (ClassDeclaration classDec : program.getClasses()) {
             classDec.accept(this);
@@ -33,25 +36,25 @@ public class NameCollector extends Visitor<Void> {
         return null;
     }
 
-    @Override
-    public Void visit(VariableDeclaration variableDeclaration) {
-        GlobalVariableSymbolTableItem globalVarSTI = new GlobalVariableSymbolTableItem(variableDeclaration);
-        try {
-            SymbolTable.root.put(globalVarSTI);
-        } catch (ItemAlreadyExistsException e) {
-            String varName = variableDeclaration.getVarName().getName();
-            GlobalVarRedefinition exception = new GlobalVarRedefinition(variableDeclaration.getLine(), varName);
-            variableDeclaration.addError(exception);
-            String newName = newId + "@";
-            newId += 1;
-            variableDeclaration.getVarName().setName(newName);
-            GlobalVariableSymbolTableItem newGlobalSTI = new GlobalVariableSymbolTableItem(variableDeclaration);
-            try {
-                SymbolTable.root.put(newGlobalSTI);
-            } catch (ItemAlreadyExistsException ignored) {}
-        }
-        return null;
-    }
+//    @Override
+//    public Void visit(VariableDeclaration variableDeclaration) {
+//        GlobalVariableSymbolTableItem globalVarSTI = new GlobalVariableSymbolTableItem(variableDeclaration);
+//        try {
+//            SymbolTable.root.put(globalVarSTI);
+//        } catch (ItemAlreadyExistsException e) {
+//            String varName = variableDeclaration.getVarName().getName();
+//            GlobalVarRedefinition exception = new GlobalVarRedefinition(variableDeclaration.getLine(), varName);
+//            variableDeclaration.addError(exception);
+//            String newName = newId + "@";
+//            newId += 1;
+//            variableDeclaration.getVarName().setName(newName);
+//            GlobalVariableSymbolTableItem newGlobalSTI = new GlobalVariableSymbolTableItem(variableDeclaration);
+//            try {
+//                SymbolTable.root.put(newGlobalSTI);
+//            } catch (ItemAlreadyExistsException ignored) {}
+//        }
+//        return null;
+//    }
 
     @Override
     public Void visit(ClassDeclaration classDeclaration) {
@@ -88,5 +91,62 @@ public class NameCollector extends Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visit(ConstructorDeclaration constructorDeclaration) {
+        this.visit((MethodDeclaration) constructorDeclaration);
+        return null;
+    }
+
+    @Override
+    public Void visit(MethodDeclaration methodDec) {
+        MethodSymbolTableItem methodSTI = new MethodSymbolTableItem(methodDec);
+        SymbolTable methodST = new SymbolTable(SymbolTable.top);
+        methodSTI.setMethodSymbolTable(methodST);
+        try {
+            SymbolTable.top.put(methodSTI);
+        } catch (ItemAlreadyExistsException e) {
+            MethodRedefinition exception = new MethodRedefinition(methodDec.getLine(), methodDec.getMethodName().getName());
+            methodDec.addError(exception);
+        }
+        SymbolTable.push(methodST);
+        for (VariableDeclaration varDec : methodDec.getArgs()) {
+            varDec.accept(this);
+        }
+
+        for (VariableDeclaration varDec : methodDec.getLocalVars()) {
+            varDec.accept(this);
+        }
+        SymbolTable.pop();
+        return null;
+    }
+
+    @Override
+    public Void visit(VariableDeclaration varDec) {
+        if (isGlobal) {
+            GlobalVariableSymbolTableItem globalVarSTI = new GlobalVariableSymbolTableItem(varDec);
+            try {
+                SymbolTable.top.put(globalVarSTI);
+            } catch (ItemAlreadyExistsException e) {
+                GlobalVarRedefinition exception = new GlobalVarRedefinition(varDec.getLine(), varDec.getVarName().getName());
+                varDec.addError(exception);
+                String newName = newId + "@";
+               newId += 1;
+                varDec.getVarName().setName(newName);
+                GlobalVariableSymbolTableItem newGlobalSTI = new GlobalVariableSymbolTableItem(varDec);
+                try {
+                    SymbolTable.top.put(newGlobalSTI);
+                } catch (ItemAlreadyExistsException ignored) {}
+            }
+            return null;
+        }
+        LocalVariableSymbolTableItem localVarSTI = new LocalVariableSymbolTableItem(varDec);
+        try {
+            SymbolTable.top.put(localVarSTI);
+        } catch (ItemAlreadyExistsException e) {
+            LocalVarRedefinition exception = new LocalVarRedefinition(varDec.getLine(), varDec.getVarName().getName());
+            varDec.addError(exception);
+        }
+        return null;
+    }
 
 }

@@ -22,4 +22,18 @@ class Person < Student {
 
 class Person {
     public int id
+    public int sum(int a, int a) {
+        return s = a + b
+    }
+    public void f(int a) {
+        int b, b;
+    }
+
+    public void credit() {
+        return self.credit
+    }
+    private int credit() {
+        return self.salary
+    }
 }
+
