@@ -8,6 +8,7 @@ class Student < Person {
 
 class Book{
     private int price
+    private int price
     public initialize(int _price) {
         self.price = _price
     }
@@ -22,6 +23,12 @@ class Person < Student {
 
 class Person {
     public int id
+    public initialize() {
+        self.id = GUID
+    }
+    public initialize(int age) {
+        self.age = age
+    }
     public int sum(int a, int a) {
         return s = a + b
     }

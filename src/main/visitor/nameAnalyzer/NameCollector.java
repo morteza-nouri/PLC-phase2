@@ -149,4 +149,17 @@ public class NameCollector extends Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visit(FieldDeclaration fieldDec) {
+        FieldSymbolTableItem fieldSTI = new FieldSymbolTableItem(fieldDec);
+        try {
+            SymbolTable.top.put(fieldSTI);
+        } catch (ItemAlreadyExistsException e) {
+            String fieldName = fieldDec.getVarDeclaration().getVarName().getName();
+            FieldRedefinition exception = new FieldRedefinition(fieldDec.getLine(), fieldName);
+            fieldDec.addError(exception);
+        }
+        return null;
+    }
+
 }
