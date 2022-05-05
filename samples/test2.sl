@@ -1,8 +1,10 @@
+int x
+int n
 
 class A < C {
     public int a
-    public int a
     public initialize() {
+        int x;
     }
 }
 

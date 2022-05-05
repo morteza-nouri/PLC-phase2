@@ -73,18 +73,44 @@ public class NameChecker extends Visitor<Void> {
     }
 
     @Override
+    public Void visit(MethodDeclaration methodDec) {
+        String methodName = methodDec.getMethodName().getName();
+        SymbolTable parentST = getCurrentClassST().pre;
+
+        // handling method redefinition in parent class
+        if (!methodDec.hasError()) {
+            try {
+                if (parentST != null) {
+                    parentST.getItem(MethodSymbolTableItem.START_KEY + methodName);
+                    MethodRedefinition exception = new MethodRedefinition(methodDec.getLine(), methodName);
+                    methodDec.addError(exception);
+                }
+            } catch (ItemNotFoundException e) { }
+        }
+        // handling method conflict with field name
+        try {
+            parentST.getItem(FieldSymbolTableItem.START_KEY + methodName);
+            MethodNameConflictWithField exception = new MethodNameConflictWithField(methodDec.getLine(), methodName);
+            methodDec.addError(exception);
+        } catch (ItemNotFoundException e) {}
+
+        return null;
+    }
+
+    @Override
     public Void visit(FieldDeclaration fieldDec) {
         if(!fieldDec.hasError()) {
             try {
                 String fieldName = fieldDec.getVarDeclaration().getVarName().getName();
-                SymbolTable curClassST = getCurrentClassST();
-                if (curClassST.pre != null) {
-                    curClassST.pre.getItem(FieldSymbolTableItem.START_KEY + fieldName);
+                SymbolTable parentST = getCurrentClassST().pre;
+                if (parentST != null) {
+                    parentST.getItem(FieldSymbolTableItem.START_KEY + fieldName);
                     FieldRedefinition exception = new FieldRedefinition(fieldDec.getLine(), fieldName);
                     fieldDec.addError(exception);
                 }
             } catch (ItemNotFoundException e) {}
         }
+
         return null;
     }
 

@@ -21,6 +21,8 @@ public class NameCollector extends Visitor<Void> {
     private int newId = 1;
     private boolean isGlobal = false;
 
+    private ArrayList<VariableDeclaration> globalVars = new ArrayList<>();
+
     @Override
     public Void visit(Program program) {
         SymbolTable.push(new SymbolTable());
@@ -35,26 +37,6 @@ public class NameCollector extends Visitor<Void> {
         }
         return null;
     }
-
-//    @Override
-//    public Void visit(VariableDeclaration variableDeclaration) {
-//        GlobalVariableSymbolTableItem globalVarSTI = new GlobalVariableSymbolTableItem(variableDeclaration);
-//        try {
-//            SymbolTable.root.put(globalVarSTI);
-//        } catch (ItemAlreadyExistsException e) {
-//            String varName = variableDeclaration.getVarName().getName();
-//            GlobalVarRedefinition exception = new GlobalVarRedefinition(variableDeclaration.getLine(), varName);
-//            variableDeclaration.addError(exception);
-//            String newName = newId + "@";
-//            newId += 1;
-//            variableDeclaration.getVarName().setName(newName);
-//            GlobalVariableSymbolTableItem newGlobalSTI = new GlobalVariableSymbolTableItem(variableDeclaration);
-//            try {
-//                SymbolTable.root.put(newGlobalSTI);
-//            } catch (ItemAlreadyExistsException ignored) {}
-//        }
-//        return null;
-//    }
 
     @Override
     public Void visit(ClassDeclaration classDeclaration) {
@@ -126,6 +108,7 @@ public class NameCollector extends Visitor<Void> {
             GlobalVariableSymbolTableItem globalVarSTI = new GlobalVariableSymbolTableItem(varDec);
             try {
                 SymbolTable.top.put(globalVarSTI);
+                globalVars.add(varDec);
             } catch (ItemAlreadyExistsException e) {
                 GlobalVarRedefinition exception = new GlobalVarRedefinition(varDec.getLine(), varDec.getVarName().getName());
                 varDec.addError(exception);
@@ -146,6 +129,16 @@ public class NameCollector extends Visitor<Void> {
             LocalVarRedefinition exception = new LocalVarRedefinition(varDec.getLine(), varDec.getVarName().getName());
             varDec.addError(exception);
         }
+
+        for (VariableDeclaration gVar : globalVars) {
+            String gVarName = gVar.getVarName().getName();
+            try {
+                SymbolTable.top.getItem(LocalVariableSymbolTableItem.START_KEY + gVarName);
+                LocalVarConflictWithGlobalVar exception = new LocalVarConflictWithGlobalVar(gVar.getLine(), gVarName);
+                varDec.addError(exception);
+            } catch (ItemNotFoundException e) {}
+        }
+
         return null;
     }
 
