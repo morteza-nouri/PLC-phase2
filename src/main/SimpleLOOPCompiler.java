@@ -98,7 +98,6 @@ public class SimpleLOOPCompiler {
         int numberOfErrors = program.accept(errorPrinter);
 
         if(numberOfErrors > 0) {
-            System.out.println("\n" + numberOfErrors + " errors detected");
             System.exit(1);
         }
         program.accept(astTreePrinter);
