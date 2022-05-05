@@ -73,6 +73,12 @@ public class NameChecker extends Visitor<Void> {
     }
 
     @Override
+    public Void visit(ConstructorDeclaration constructorDeclaration) {
+        this.visit((MethodDeclaration) constructorDeclaration);
+        return null;
+    }
+
+    @Override
     public Void visit(MethodDeclaration methodDec) {
         String methodName = methodDec.getMethodName().getName();
         SymbolTable parentST = getCurrentClassST().pre;
