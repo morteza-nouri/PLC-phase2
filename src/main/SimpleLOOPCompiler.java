@@ -74,8 +74,7 @@
 
 package main;
 
-import main.visitor.name.ASTTreePrinter;
-import main.visitor.name.NameAnalyser;
+import main.visitor.nameAnalyzer.*;
 import main.visitor.utils.ErrorPrinter;
 import parsers.*;
 import main.ast.nodes.Program;
@@ -92,8 +91,8 @@ public class SimpleLOOPCompiler {
 
         // Todo
         ErrorPrinter errorPrinter = new ErrorPrinter();
-        NameAnalyser nameAnalyser = new NameAnalyser();
-        program.accept(nameAnalyser);
+        NameAnalyzer nameAnalyser = new NameAnalyzer(program);
+        nameAnalyser.analyze();
         ASTTreePrinter astTreePrinter = new ASTTreePrinter();
 
         int numberOfErrors = program.accept(errorPrinter);

@@ -1,8 +1,12 @@
+
+int age
+int age
+
 class Student < Person {
     private int age
 }
 
-class Book {
+class Book{
     private int price
     public initialize(int _price) {
         self.price = _price
@@ -14,4 +18,8 @@ class Book {
 
 class Person < Student {
     private int ssn
+}
+
+class Person {
+    public int id
 }

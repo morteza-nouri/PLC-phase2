@@ -1,4 +1,4 @@
-package main.visitor.name;
+package main.visitor.nameAnalyzer;
 
 import main.ast.nodes.*;
 import main.ast.nodes.declaration.classDec.ClassDeclaration;
