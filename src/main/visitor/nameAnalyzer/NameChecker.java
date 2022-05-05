@@ -93,7 +93,15 @@ public class NameChecker extends Visitor<Void> {
                 }
             } catch (ItemNotFoundException e) { }
         }
-        // handling method conflict with field name
+
+        // handling method conflict with field name in class
+        try {
+            getCurrentClassST().getItem(FieldSymbolTableItem.START_KEY + methodName);
+            MethodNameConflictWithField exception = new MethodNameConflictWithField(methodDec.getLine(), methodName);
+            methodDec.addError(exception);
+        } catch (ItemNotFoundException e) {}
+
+        // handling method conflict with field name in parent
         try {
             parentST.getItem(FieldSymbolTableItem.START_KEY + methodName);
             MethodNameConflictWithField exception = new MethodNameConflictWithField(methodDec.getLine(), methodName);
