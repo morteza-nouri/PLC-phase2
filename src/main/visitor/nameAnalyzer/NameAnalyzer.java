@@ -42,9 +42,9 @@ public class NameAnalyzer{
                 try {
                     classHierarchy.addNodeAsParentOf(className, parentName);
                     ClassSymbolTableItem parentSTI = (ClassSymbolTableItem)SymbolTable.root.
-                            getItem(ClassSymbolTableItem.START_KEY + parentName);
+                            getItem(ClassSymbolTableItem.START_KEY + parentName, true);
                     ClassSymbolTableItem curClassSTI = (ClassSymbolTableItem)SymbolTable.root.
-                            getItem(ClassSymbolTableItem.START_KEY + className);
+                            getItem(ClassSymbolTableItem.START_KEY + className, true);
                     curClassSTI.getClassSymbolTable().pre = parentSTI.getClassSymbolTable();
                 } catch (ItemNotFoundException |GraphDoesNotContainNodeException ignore) {}
             }

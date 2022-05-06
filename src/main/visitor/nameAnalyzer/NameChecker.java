@@ -25,7 +25,7 @@ public class NameChecker extends Visitor<Void> {
     private SymbolTable getCurrentClassST() {
         try {
             ClassSymbolTableItem classSTI = (ClassSymbolTableItem) SymbolTable.root.
-                    getItem(ClassSymbolTableItem.START_KEY + this.curClassName);
+                    getItem(ClassSymbolTableItem.START_KEY + this.curClassName, true);
             return classSTI.getClassSymbolTable();
         } catch (ItemNotFoundException e) {}
         return null;
@@ -81,22 +81,19 @@ public class NameChecker extends Visitor<Void> {
     @Override
     public Void visit(MethodDeclaration methodDec) {
         String methodName = methodDec.getMethodName().getName();
-        SymbolTable parentST = getCurrentClassST().pre;
 
         // handling method redefinition in parent class
         if (!methodDec.hasError()) {
             try {
-                if (parentST != null) {
-                    parentST.getItem(MethodSymbolTableItem.START_KEY + methodName);
-                    MethodRedefinition exception = new MethodRedefinition(methodDec.getLine(), methodName);
-                    methodDec.addError(exception);
-                }
+                getCurrentClassST().getItem(MethodSymbolTableItem.START_KEY + methodName, false);
+                MethodRedefinition exception = new MethodRedefinition(methodDec.getLine(), methodName);
+                methodDec.addError(exception);
             } catch (ItemNotFoundException e) { }
         }
 
         // handling method conflict with field name in class
         try {
-            getCurrentClassST().getItem(FieldSymbolTableItem.START_KEY + methodName);
+            getCurrentClassST().getItem(FieldSymbolTableItem.START_KEY + methodName, true);
             MethodNameConflictWithField exception = new MethodNameConflictWithField(methodDec.getLine(), methodName);
             methodDec.addError(exception);
         } catch (ItemNotFoundException e) {}
@@ -109,12 +106,9 @@ public class NameChecker extends Visitor<Void> {
         if(!fieldDec.hasError()) {
             try {
                 String fieldName = fieldDec.getVarDeclaration().getVarName().getName();
-                SymbolTable parentST = getCurrentClassST().pre;
-                if (parentST != null) {
-                    parentST.getItem(FieldSymbolTableItem.START_KEY + fieldName);
-                    FieldRedefinition exception = new FieldRedefinition(fieldDec.getLine(), fieldName);
-                    fieldDec.addError(exception);
-                }
+                getCurrentClassST().getItem(FieldSymbolTableItem.START_KEY + fieldName, false);
+                FieldRedefinition exception = new FieldRedefinition(fieldDec.getLine(), fieldName);
+                fieldDec.addError(exception);
             } catch (ItemNotFoundException e) {}
         }
 
