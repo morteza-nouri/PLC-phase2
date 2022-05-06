@@ -62,12 +62,14 @@ public class ErrorPrinter extends Visitor<Integer> {
         int numOfErrors = printErrors(constructorDeclaration);
         if (constructorDeclaration.getArgs() != null)
             for(VariableDeclaration arg : constructorDeclaration.getArgs()) {
-                numOfErrors +=arg.accept(this);
+                if (arg != null)
+                    numOfErrors +=arg.accept(this);
             }
 
         if (constructorDeclaration.getLocalVars() != null)
             for(VariableDeclaration localVar : constructorDeclaration.getLocalVars()) {
-                numOfErrors +=localVar.accept(this);
+                if (localVar != null)
+                    numOfErrors +=localVar.accept(this);
             }
 
         if (constructorDeclaration.getBody() != null)
@@ -84,15 +86,18 @@ public class ErrorPrinter extends Visitor<Integer> {
         numOfErrors +=methodDeclaration.getMethodName().accept(this);
 
         for(VariableDeclaration arg : methodDeclaration.getArgs()) {
-            numOfErrors +=arg.accept(this);
+            if(arg != null)
+                numOfErrors +=arg.accept(this);
         }
 
         for(VariableDeclaration localVar : methodDeclaration.getLocalVars()) {
-            numOfErrors +=localVar.accept(this);
+            if(localVar != null)
+                numOfErrors +=localVar.accept(this);
         }
 
         for(Statement body : methodDeclaration.getBody()) {
-            numOfErrors +=body.accept(this);
+            if(body != null)
+                numOfErrors +=body.accept(this);
         }
         return numOfErrors;
     }
@@ -100,7 +105,8 @@ public class ErrorPrinter extends Visitor<Integer> {
     @Override
     public Integer visit(FieldDeclaration fieldDeclaration) {
         int numOfErrors = printErrors(fieldDeclaration);
-        numOfErrors += fieldDeclaration.getVarDeclaration().accept(this);
+        if(fieldDeclaration != null)
+            numOfErrors += fieldDeclaration.getVarDeclaration().accept(this);
         return numOfErrors;
     }
 
